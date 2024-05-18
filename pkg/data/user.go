@@ -1,7 +1,8 @@
 package data
 
 type User struct {
-	Id    int
-	Name  string
-	Email string
+	Id       int
+	GoogleId string
+	Name     string
+	Email    string
 }
