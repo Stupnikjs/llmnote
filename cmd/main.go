@@ -1,15 +1,11 @@
-
-
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/Stupnikjs/pharmago/pkg/repo"
-	"github.com/Stupnikjs/pharmago/pkg/repo/db"
 	"github.com/joho/godotenv"
 )
 
@@ -32,23 +28,20 @@ func main() {
 
 	app.config = config
 
-	conn, err := app.connectToDB()
+	/* conn, err := app.connectToDB()
 
 	if err != nil {
 		fmt.Println("error connection to db")
 	}
-	app.DB = &db.PostgresDBRepo{DB: conn}
+	// app.DB = &db.PostgresDBRepo{DB: conn}
 
 	// app.InitTables()
 
-	if err != nil {
-		fmt.Println(err)
-	}
+	*/
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 	http.ListenAndServe(":"+port, app.routes())
-}
-
 }
