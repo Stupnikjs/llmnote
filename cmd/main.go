@@ -1,76 +1,54 @@
+
+
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
-	"path"
 
-	"github.com/ledongthuc/pdf"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/googleai"
+	"github.com/Stupnikjs/pharmago/pkg/repo"
+	"github.com/Stupnikjs/pharmago/pkg/repo/db"
+	"github.com/joho/godotenv"
 )
 
-var Dirname = "fiches"
+type application struct {
+	config map[string]string
+	URI_DB string
+	DB     repo.DatabaseRepo
+}
 
 func main() {
-	arg := os.Args
-	curr, err := os.Getwd()
+
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
+	config := make(map[string]string)
+	config["SECRET_TOKEN"] = os.Getenv("SECRET_TOKEN")
+
+	app := application{}
+
+	app.config = config
+
+	conn, err := app.connectToDB()
+
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("error connection to db")
 	}
+	app.DB = &db.PostgresDBRepo{DB: conn}
 
-	if arg[1] == "play" {
+	// app.InitTables()
 
-		entries, err := os.ReadDir(Dirname)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-		for _, e := range entries {
-			fmt.Println(e.Name())
-
-			ctx := context.Background()
-			llm, err := googleai.New(ctx, googleai.WithAPIKey("AIzaSyBoaJBQnI-Y6Af8E6e1Dqa-dSAHFoZaLC0"))
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			pdf_file, err := os.Open(path.Join(curr, Dirname, e.Name()))
-			if err != nil {
-				log.Fatal(err)
-			}
-			pdf_stat, err := os.Stat((path.Join(curr, Dirname, e.Name())))
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer pdf_file.Close()
-
-			reader, err := pdf.NewReader(pdf_file, pdf_stat.Size())
-
-			if err != nil {
-				log.Fatal(err)
-			}
-			page := reader.Page(1)
-			text, err := page.GetPlainText(nil)
-
-			if err != nil {
-				log.Fatal(err)
-			}
-			prompt := fmt.Sprintf("peux tu extraire les informations et les presenter en format json et en francais avec les clé 'dci' 'effets' 'indications' 'mode_de_prise' %s", text)
-			answer, err := llms.GenerateFromSinglePrompt(ctx, llm, prompt)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			fmt.Println(answer)
-
-		}
-
+	if err != nil {
+		fmt.Println(err)
 	}
-	if arg[1] == "scrap" {
-		ScrapWrap()
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
 	}
+	http.ListenAndServe(":"+port, app.routes())
+}
 
 }
