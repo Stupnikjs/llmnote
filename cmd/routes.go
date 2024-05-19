@@ -13,7 +13,7 @@ func (app *application) routes() http.Handler {
 	// register routes
 	mux.Get("/", app.RenderAccueil)
 	mux.Get("/loged", OauthGoogleCallback)
-	mux.Get("/login", OauthGoogleLogin)
+	mux.Get("/signin/google", OauthGoogleLogin)
 	// static assets
 
 	fileServer := http.FileServer(http.Dir("./static/"))
