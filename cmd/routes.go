@@ -15,7 +15,7 @@ func (app *application) routes() http.Handler {
 	mux.Get("/loged", OauthGoogleCallback)
 	mux.Get("/signin/google", OauthGoogleLogin)
 	// static assets
-
+ 
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
 
